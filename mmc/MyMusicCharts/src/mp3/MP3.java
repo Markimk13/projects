@@ -18,8 +18,7 @@ public class MP3 {
 	public static final int[] PLACES = getPlacesFromFile(new File(HOME_PATH + "Dropbox\\Hobbys\\Meine Charts\\places.txt"));
 	
 	public static void main(String[] args) throws Exception {
-		// updateCharts();
-		System.out.println("Hallo");
+		updateCharts();
 	}
 	
 	public static void updateCharts() throws Exception {
