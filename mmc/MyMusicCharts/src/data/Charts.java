@@ -1,4 +1,4 @@
-package charts;
+package data;
 
 public class Charts {
 

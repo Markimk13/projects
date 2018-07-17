@@ -1,114 +1,74 @@
 package core;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 
-import com.mpatric.mp3agic.ID3v2;
-import com.mpatric.mp3agic.Mp3File;
+import com.mpatric.mp3agic.InvalidDataException;
+import com.mpatric.mp3agic.NotSupportedException;
+import com.mpatric.mp3agic.UnsupportedTagException;
+
+import data.Song;
 
 public class Overview {
-	
+
 	public static final String HOME_PATH = "C:\\Users\\UK\\";
 	public static final String IN_DIR = HOME_PATH + "Dropbox\\Hobbys\\Musik\\Charts\\";
 	public static final String OUT_DIR = HOME_PATH + "Dropbox\\Hobbys\\Musik\\Next\\";
+	public static final String ALBUM = "MyCharts";
 	
-	public static final int[] PLACES = getPlacesFromFile(new File(HOME_PATH + "Dropbox\\Hobbys\\Meine Charts\\places.txt"));
-	
-	public static void main(String[] args) throws Exception {
-		updateCharts();
+	public static void main(String[] args) {
+		// updateCharts();
+		// lastReleases(122);
+		// editSongs();
 	}
 	
-	public static void updateCharts() throws Exception {
+	private static void editSongs() {
+		try {
+			Song.setValues("Nexeri ft. Jex - Games (Lyric Video).mp3", 256, "Games", "Nexeri; Jex");
+			Song.setValues("Sigrid - High Five (Lyric Video).mp3", 306, "High Five", "Sigrid");
+			Song.updateMp3Manual("Prismo - Breathe (Official Lyric Video).mp3", 156);
+			Song.updateMp3Manual("Disclosure - Ultimatum (Audio) ft. Fatoumata Diawara.mp3", 206);
+			Song.updateMp3Manual("Amadeus - Goodbye.mp3", 6);
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public static void updateCharts() {
 		File inputDir = new File(IN_DIR);
 		if (inputDir.isDirectory()) {
 			File[] files = inputDir.listFiles();
 			int fileAmount = files.length;
 			for (int i = 0; i < fileAmount; i++) {
 				String name = files[i].getName();
-				updateMp3(name);
-				System.out.println("Updated file \"" + name + "\" (" + (i+1) + "/" + fileAmount + ")");
+				try {
+					Song.updateMp3(name);
+					System.out.println("(success) Updated file \"" + name + "\" (" + (i+1) + "/" + fileAmount + ")");
+					
+				} catch (UnsupportedTagException | InvalidDataException | NotSupportedException | IOException utidnsioe) {
+					System.out.println("(failure) Updated file \"" + name + "\" (" + (i+1) + "/" + fileAmount + ")");
+					utidnsioe.printStackTrace();
+				}
 			}
 		}
 	}
 	
-	public static int[] getPlacesFromFile(File file) {
-		int[] places = null;
-		
-		try {
-			BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(file), "UTF-8"));
-			
-			String[] toks = in.readLine().split("\\t");
-			places = new int[toks.length];
-			for (int i = 0; i < toks.length; i++) {
-				places[i] = Integer.parseInt(toks[i]);
-			}
-			
-			in.close();
-			
-		} catch (IOException ioe) {
-			ioe.printStackTrace();
-		}
-		
-		return places;
-	}
-	
-	public static int getPlaceFromTrackNumber(int trackNumber) {
-		return (PLACES.length + 1) - (trackNumber - 1) / 10;
-	}
-	
-	public static int getTrackNumberFromPlace(int place) {
-		return 10 * (PLACES.length + 1 - place) + 1;
-	}
-	
-	public static boolean updateTag(ID3v2 id3v2Tag) {
-		int track = Integer.parseInt(id3v2Tag.getTrack());
-		if (track % 10 == 1) {
-			int place = PLACES[getPlaceFromTrackNumber(track) - 1];
-			if (place != 0) {
-				id3v2Tag.setTrack("" + getTrackNumberFromPlace(place));
-				return true;
-			}
-		} else {
-			int place = PLACES[0];
-			id3v2Tag.setTrack("" + (10 * (PLACES.length - place) + 9));
-			return true;
-		}
-		return false;
-	}
-	
-	public static boolean updateTag(ID3v2 id3v2Tag, int place) {
-		if (place > 0 && place <= 40) {
-			id3v2Tag.setTrack("" + getTrackNumberFromPlace(place));
-			return true;
-		}
-		return false;
-	}
-	
-	public static void updateMp3(String name) throws Exception {
-		String fileName = IN_DIR + name;
-		String newFileName = OUT_DIR + name;
-		Mp3File mp3file = new Mp3File(fileName);
-		
-		if (mp3file.hasId3v2Tag()) {
-			ID3v2 id3v2Tag = mp3file.getId3v2Tag();
-			if (updateTag(id3v2Tag)) {
-				mp3file.save(newFileName);
-			}
-		}
-	}
-	
-	public static void updateMp3(String name, int place) throws Exception {
-		String fileName = IN_DIR + name;
-		String newFileName = OUT_DIR + name;
-		Mp3File mp3file = new Mp3File(fileName);
-		
-		if (mp3file.hasId3v2Tag()) {
-			ID3v2 id3v2Tag = mp3file.getId3v2Tag();
-			if (updateTag(id3v2Tag, place)) {
-				mp3file.save(newFileName);
+	public static void lastReleases(int release) {
+		File inputDir = new File(IN_DIR);
+		if (inputDir.isDirectory()) {
+			File[] files = inputDir.listFiles();
+			int fileAmount = files.length;
+			for (int i = 0; i < fileAmount; i++) {
+				String name = files[i].getName();
+				try {
+					Song.lastRelease(name, release);
+					System.out.println("(success) Updated file \"" + name + "\" (" + (i+1) + "/" + fileAmount + ")");
+					
+				} catch (UnsupportedTagException | InvalidDataException | NotSupportedException | IOException utidnsioe) {
+					System.out.println("(failure) Updated file \"" + name + "\" (" + (i+1) + "/" + fileAmount + ")");
+					utidnsioe.printStackTrace();
+				}
 			}
 		}
 	}
