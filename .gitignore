@@ -1,2 +1,8 @@
 
 *.class
+mmc/MyMusicCharts/data/places.txt
+mmc/MyMusicCharts/data/output.txt
+mmc/MyMusicCharts/data/new.txt
+mmc/MyMusicCharts/data/log.txt
+mmc/MyMusicCharts/data/input.txt
+mmc/MyMusicCharts/data/archive.txt

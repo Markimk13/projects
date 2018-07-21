@@ -1,4 +1,4 @@
-package io;
+package util;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -8,13 +8,11 @@ import java.io.InputStreamReader;
 
 import com.mpatric.mp3agic.ID3v2;
 
-import core.Overview;
+import io.Overview;
 
 public class TagEditor {
 	
-	private static final int[] PLACES = getPlacesFromFile(new File(Overview.HOME_PATH + "Dropbox\\Hobbys\\Meine Charts\\places.txt"));
-	
-	public static int[] getPlacesFromFile(File file) {
+	private static int[] getPlacesFromFile(File file) {
 		int[] places = null;
 		
 		try {
@@ -34,26 +32,30 @@ public class TagEditor {
 		
 		return places;
 	}
+	
+	private static int[] getPlaces() {
+		return getPlacesFromFile(new File(Overview.getSetting(Overview.PLACES)));
+	}
 
 	public static int getPlaceFromTrackNumber(int trackNumber) {
-		return (PLACES.length + 1) - (trackNumber - 1) / 10;
+		return (getPlaces().length + 1) - (trackNumber - 1) / 10;
 	}
 	
 	public static int getTrackNumberFromPlace(int place) {
-		return 10 * (PLACES.length + 1 - place) + 1;
+		return 10 * (getPlaces().length + 1 - place) + 1;
 	}
 	
 	public static boolean updateTagPlace(ID3v2 id3v2Tag) {
 		int track = Integer.parseInt(id3v2Tag.getTrack());
 		if (track % 10 == 1) {
-			int place = PLACES[getPlaceFromTrackNumber(track) - 1];
+			int place = getPlaces()[getPlaceFromTrackNumber(track) - 1];
 			if (place != 0) {
 				id3v2Tag.setTrack("" + getTrackNumberFromPlace(place));
 				return true;
 			}
 		} else {
-			int place = PLACES[0];
-			id3v2Tag.setTrack("" + (10 * (PLACES.length - place) + 9));
+			int place = getPlaces()[0];
+			id3v2Tag.setTrack("" + (10 * (getPlaces().length - place) + 9));
 			return true;
 		}
 		return false;
@@ -73,15 +75,35 @@ public class TagEditor {
 	}
 
 	public static boolean lastRelease(ID3v2 id3v2Tag, int release) {
-		id3v2Tag.setTrack("" + (1000 * release + Integer.parseInt(id3v2Tag.getTrack())));
-		return true;
+		int track = Integer.parseInt(id3v2Tag.getTrack());
+		if (track % 10 == 1) {
+			int place = getPlaces()[getPlaceFromTrackNumber(track) - 1];
+			if (place == 0) {
+				id3v2Tag.setTrack("" + (1000 * release + Integer.parseInt(id3v2Tag.getTrack())));
+				return true;
+			}
+		}
+		
+		return false;
 	}
 	
-	public static boolean setValues(ID3v2 id3v2Tag, int trackNumber, String track, String artists, String album) {
-		id3v2Tag.setTrack("" + trackNumber);
-		id3v2Tag.setTitle(track);
-		id3v2Tag.setArtist(artists);
-		id3v2Tag.setAlbum(album);
+	public static boolean setValues(ID3v2 id3v2Tag, int trackNumber, String track, String[] artists, String album) {
+		if (trackNumber != 0) {
+			id3v2Tag.setTrack("" + trackNumber);
+		}
+		if (!track.isEmpty()) {
+			id3v2Tag.setTitle(track);
+		}
+		if (!artists[0].isEmpty()) {
+			String artistValue = artists[0];
+			for (int i = 1; i < artists.length; i++) {
+				artistValue += "/" + artists[i];
+			}
+			id3v2Tag.setArtist(artistValue);
+		}
+		if (!album.isEmpty()) {
+			id3v2Tag.setAlbum(album);
+		}
 		return true;
 	}
 }
